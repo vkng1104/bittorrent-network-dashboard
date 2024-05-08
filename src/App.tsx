@@ -62,7 +62,7 @@ const App = () => {
     <Stack p={5} justifyContent="center" alignItems="center" gap={3}>
       <Stack
         gap={3}
-        width={400}
+        width={600}
         flexDirection="row"
         justifyContent="center"
         alignItems="center"
@@ -74,6 +74,7 @@ const App = () => {
           onChange={(e) => setNodeIdInput(e.target.value)}
         />
         <Button onClick={handleCreateNode}>Create Node</Button>
+        <Button onClick={handleCreateNode}>Start tracker</Button>
       </Stack>
       <Divider />
       <AllNodes />

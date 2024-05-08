@@ -6,3 +6,7 @@ export type AllNodeResponse = {
   }[];
   bittorrentFiles: string[];
 };
+
+export type LogResponse = {
+  logData: string;
+};

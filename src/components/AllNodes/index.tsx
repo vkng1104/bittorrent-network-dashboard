@@ -1,3 +1,4 @@
+import { Grid } from "@mui/material";
 import { useTorrentContext } from "../../hooks/useTorrentContext";
 import NodeInfo from "../Node";
 
@@ -9,10 +10,18 @@ const AllNodes = () => {
       return <p>No nodes found.</p>;
     }
 
-    return nodes.map((node) => <NodeInfo key={node.nodeId} node={node} />);
+    return nodes.map((node) => (
+      <Grid item xs={4}>
+        <NodeInfo key={node.nodeId} node={node} />
+      </Grid>
+    ));
   };
 
-  return <>{renderNodes()}</>;
+  return (
+    <Grid container spacing={2}>
+      {renderNodes()}
+    </Grid>
+  );
 };
 
 export default AllNodes;

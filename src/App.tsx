@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Box, Button, Snackbar, TextField, Alert, Stack } from "@mui/material";
+import { Button, Snackbar, TextField, Alert, Stack, Divider } from "@mui/material";
 
 import { useTorrentContext } from "./hooks/useTorrentContext";
 import { useCreateNode } from "./hooks/useNode";
@@ -56,7 +56,7 @@ const App = () => {
   };
 
   return (
-    <Box p={5} justifyContent="center" alignItems="center">
+    <Stack p={5} justifyContent="center" alignItems="center" gap={3}>
       <Stack
         gap={3}
         width={400}
@@ -72,6 +72,7 @@ const App = () => {
         />
         <Button onClick={handleCreateNode}>Create Node</Button>
       </Stack>
+      <Divider />
       <AllNodes />
       {/* Snackbar to display alert messages */}
       <Snackbar
@@ -88,7 +89,7 @@ const App = () => {
           {snackbarContent.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </Stack>
   );
 };
 

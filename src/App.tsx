@@ -11,40 +11,33 @@ import {
 import { useTorrentContext } from "./hooks/useTorrentContext";
 import { useCreateNode } from "./hooks/useNode";
 import AllNodes from "./components/AllNodes";
+import { useStartTracker } from "./hooks/useStartTracker";
 
 const App = () => {
   const { onGetAllNodes, snackbarContent, onSetSnackbarContent } =
     useTorrentContext();
   const { createNode } = useCreateNode();
+  const { startTracker } = useStartTracker();
 
   const [nodeIdInput, setNodeIdInput] = useState("");
 
   const handleCreateNode = async () => {
     const nodeId = parseInt(nodeIdInput);
     if (!isNaN(nodeId) && nodeId >= 0) {
-      try {
-        await createNode(
-          { nodeId },
-          {
-            onSuccess: () => {
-              onSetSnackbarContent({
-                open: true,
-                message: "Node created successfully.",
-                severity: "success",
-              });
-              setNodeIdInput(""); // Clear input field
-              onGetAllNodes(); // Refresh nodes data after creation
-            },
-          }
-        );
-      } catch (error) {
-        console.error("Error creating node:", error);
-        onSetSnackbarContent({
-          open: true,
-          message: "Error creating node. Please try again.",
-          severity: "error",
-        });
-      }
+      await createNode(
+        { nodeId },
+        {
+          onSuccess: () => {
+            onSetSnackbarContent({
+              open: true,
+              message: "Node created successfully.",
+              severity: "success",
+            });
+            setNodeIdInput(""); // Clear input field
+            onGetAllNodes(); // Refresh nodes data after creation
+          },
+        }
+      );
     } else {
       onSetSnackbarContent({
         open: true,
@@ -52,6 +45,18 @@ const App = () => {
         severity: "error",
       });
     }
+  };
+
+  const handleStartTracker = async () => {
+    await startTracker({
+      onSuccess(data) {
+          onSetSnackbarContent({
+            open: true,
+            message: data.message,
+            severity: "success",
+          });
+      },
+    });
   };
 
   const handleCloseSnackbar = () => {
@@ -74,7 +79,7 @@ const App = () => {
           onChange={(e) => setNodeIdInput(e.target.value)}
         />
         <Button onClick={handleCreateNode}>Create Node</Button>
-        <Button onClick={handleCreateNode}>Start tracker</Button>
+        <Button onClick={handleStartTracker}>Start tracker</Button>
       </Stack>
       <Divider />
       <AllNodes />

@@ -17,10 +17,10 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
   modeReset,
   nodeId,
 }) => {
-  const { selectedFileName, onSetFileName } = useTorrentContext();
+  const { selectedFileName, onsetSelectedFileName } = useTorrentContext();
 
   useEffect(() => {
-    onSetFileName(nodeId, "");
+    onsetSelectedFileName(nodeId, "");
   }, [modeReset]);
 
   return (
@@ -31,7 +31,9 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
         disableClearable
         options={fileOptions}
         value={selectedFileName ? selectedFileName[nodeId] : ""}
-        onInputChange={(event, newValue) => onSetFileName(nodeId, newValue)}
+        onInputChange={(event, newValue) =>
+          onsetSelectedFileName(nodeId, newValue)
+        }
         renderInput={(params) => (
           <TextField
             {...params}

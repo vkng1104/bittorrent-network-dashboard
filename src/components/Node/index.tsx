@@ -84,7 +84,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
     const otherFiles = allFiles.filter((file) => !node.files.includes(file));
 
     switch (mode) {
-      case "send":
+      case "upload":
         return (
           <Stack direction="row" spacing={1}>
             <Stack gap={2}>
@@ -123,13 +123,14 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
             <Button variant="contained">Download</Button>
           </Stack>
         );
-      case "files":
+      case "send":
         return (
           <Stack gap={2}>
             <SearchFiles
               fileOptions={node.files}
               placeholder={`Search files in node ${node.nodeId}`}
             />
+            <Button variant="contained">Send</Button>
           </Stack>
         );
       default:
@@ -169,9 +170,9 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
                 alignItems="start"
               >
                 <FormControlLabel
-                  value="files"
+                  value="upload"
                   control={<Radio />}
-                  label="Files"
+                  label="Upload"
                 />
                 <FormControlLabel
                   value="send"

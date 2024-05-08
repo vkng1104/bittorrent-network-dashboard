@@ -1,6 +1,7 @@
 import React, { useState, createContext, useEffect } from "react";
 import { useGetAllNodes } from "../hooks/useNode";
-import { Node } from "../types";
+import { AllNodeResponse, Node } from "../types";
+import { nodeInfoTransform } from "../utils/nodeUtils";
 
 interface TorrentContextType {
   nodes: Node[] | null;
@@ -29,8 +30,9 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
       try {
         await getAllNodes({
           onSuccess(data) {
-            console.log(data);
-            setNodes(data as Node[]);
+            const transformedNodes = nodeInfoTransform(data as AllNodeResponse);
+            console.log(transformedNodes);
+            setNodes(transformedNodes);
           },
         });
       } catch (error) {

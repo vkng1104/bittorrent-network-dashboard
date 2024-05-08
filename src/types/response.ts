@@ -4,4 +4,5 @@ export type AllNodeResponse = {
     nodeId: number;
     files: string;
   }[];
+  bittorrentFiles: string[];
 };

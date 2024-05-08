@@ -16,7 +16,7 @@ const AllNodes = () => {
     }
 
     return nodes.map((node) => (
-      <Grid item xs={4}>
+      <Grid item xs={4} key={node.nodeId}>
         <NodeInfo key={node.nodeId} node={node} />
       </Grid>
     ));

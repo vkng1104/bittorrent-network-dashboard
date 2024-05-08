@@ -20,17 +20,29 @@ interface NodeProps {
 }
 
 const NodeInfo: React.FC<NodeProps> = ({ node }) => {
-  const { nodes, onModeChange, onGetAllNodes, onSetSnackbarContent } =
-    useTorrentContext();
+  const {
+    bittorrentFiles,
+    onModeChange,
+    onGetAllNodes,
+    onSetSnackbarContent,
+    onSetMode,
+  } = useTorrentContext();
   const { uploadFile } = useUploadFile();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
+    null
+  );
   const [mode, setMode] = useState<string>("");
 
   const handleModeChange = (newMode: string) => {
     setMode(newMode);
-    onModeChange(newMode);
+    onModeChange(node.nodeId, newMode);
+  };
+
+  const handleSetMode = (newMode?: string) => {
+    if (newMode) handleModeChange(newMode);
+    onSetMode(node.nodeId);
   };
 
   const handleUpload = () => {
@@ -43,25 +55,25 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       const file = files[0];
-      setSelectedFile(file); // Update the selected file name
+      setSelectedUploadFile(file); // Update the selected file name
       // Here you can handle the file upload
     }
   };
 
-  const handleSaveFile = () => {
-    if (selectedFile) {
+  const handleSaveFile = async () => {
+    if (selectedUploadFile) {
       const formData = new FormData();
       formData.append("nodeId", node.nodeId.toString());
-      formData.append("file", selectedFile);
-      uploadFile(formData, {
+      formData.append("file", selectedUploadFile);
+      await uploadFile(formData, {
         onSuccess: () => {
-          onGetAllNodes;
-          setSelectedFile(null);
           onSetSnackbarContent({
             open: true,
             message: `File uploaded to node ${node.nodeId} successfully.`,
             severity: "success",
           });
+          onGetAllNodes(); // Refresh nodes data after creation
+          setSelectedUploadFile(null);
         },
         onError: (error) => {
           console.error("Error uploading file:", error);
@@ -72,16 +84,13 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
   };
 
   const renderModeComponent = () => {
-    if (!nodes) {
+    if (!bittorrentFiles) {
       return null;
     }
 
-    // Concatenate all files from all nodes except the current node
-    const allFiles = nodes?.reduce(
-      (acc, curr) => [...acc, ...curr.files],
-      [] as string[]
+    const otherFiles = bittorrentFiles.filter(
+      (file) => !node.files.includes(file)
     );
-    const otherFiles = allFiles.filter((file) => !node.files.includes(file));
 
     switch (mode) {
       case "upload":
@@ -94,7 +103,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
                 </Button>
                 <Button
                   variant="contained"
-                  disabled={selectedFile === null}
+                  disabled={selectedUploadFile === null}
                   onClick={handleSaveFile}
                 >
                   Save
@@ -108,7 +117,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
               />
               {/* Display selected file name */}
               <Typography gutterBottom component="div">
-                {selectedFile?.name || "No file selected"}
+                {selectedUploadFile?.name || "No file selected"}
               </Typography>
             </Stack>
           </Stack>
@@ -117,20 +126,28 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
         return (
           <Stack gap={2}>
             <SearchFiles
+              nodeId={node.nodeId}
+              modeReset={mode}
               fileOptions={otherFiles}
               placeholder={`Search files to download`}
             />
-            <Button variant="contained">Download</Button>
+            <Button variant="contained" onClick={() => handleSetMode()}>
+              Download
+            </Button>
           </Stack>
         );
       case "send":
         return (
           <Stack gap={2}>
             <SearchFiles
+              modeReset={mode}
+              nodeId={node.nodeId}
               fileOptions={node.files}
               placeholder={`Search files in node ${node.nodeId}`}
             />
-            <Button variant="contained">Send</Button>
+            <Button variant="contained" onClick={() => handleSetMode()}>
+              Send
+            </Button>
           </Stack>
         );
       default:
@@ -150,7 +167,9 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
           <Typography gutterBottom variant="h5" component="div">
             Node ID: {node.nodeId}
           </Typography>
-          <Button variant="contained">Exit</Button>
+          <Button variant="contained" onClick={() => handleSetMode("exit")}>
+            Exit
+          </Button>
         </Stack>
 
         <Stack>

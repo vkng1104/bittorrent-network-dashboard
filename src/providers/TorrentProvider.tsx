@@ -1,15 +1,18 @@
 import React, { useState, createContext, useEffect } from "react";
-import { useGetAllNodes } from "../hooks/useNode";
-import { AllNodeResponse, Node, SnackbarContent } from "../types";
+import { useGetAllNodes, useSetMode } from "../hooks/useNode";
+import { AllNodeResponse, ModeForm, Node, SnackbarContent } from "../types";
 import { nodeInfoTransform } from "../utils/nodeUtils";
 
 interface TorrentContextType {
   nodes: Node[] | null;
+  bittorrentFiles: string[] | null;
   snackbarContent: SnackbarContent;
-  onModeChange: (mode: string) => void;
-  onNodeSelect: (nodeId: number) => void;
-  onGetAllNodes: () => void;
+  selectedFileName: string[] | null;
   onSetSnackbarContent: (snackbarContent: SnackbarContent) => void;
+  onGetAllNodes: () => Promise<void>;
+  onSetMode: (nodeId: number) => Promise<void>;
+  onSetFileName: (nodeId: number, filename: string) => void;
+  onModeChange: (nodeId: number, mode: string) => void;
 }
 
 // Create a context for the SDK
@@ -22,15 +25,18 @@ type Props = {
 };
 
 export const TorrentProvider: React.FC<Props> = ({ children }) => {
-  const [selectedNode, setSelectedNode] = useState<number | null>(null);
   const [snackbarContent, setSnackbarContent] = useState<SnackbarContent>({
     open: false,
     message: "",
     severity: "error",
   });
   const [nodes, setNodes] = useState<Node[] | null>(null);
+  const [bittorrentFiles, setBittorrentFiles] = useState<string[] | null>(null);
+  const [selectedMode, setSelectedMode] = useState<string[] | null>(null);
+  const [selectedFileName, setFileName] = useState<string[] | null>(null);
 
   const { getAllNodes } = useGetAllNodes();
+  const { setMode } = useSetMode();
 
   useEffect(() => {
     const fetchNodes = async () => {
@@ -46,38 +52,81 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
 
   const handleGetAllNodes = async () => {
     await getAllNodes({
-      onSuccess(data) {
-        const transformedNodes = nodeInfoTransform(data as AllNodeResponse);
+      onSuccess(data: AllNodeResponse) {
+        const transformedNodes = nodeInfoTransform(data);
         console.log(transformedNodes);
         setNodes(transformedNodes);
+        setBittorrentFiles(data.bittorrentFiles);
       },
     });
   };
 
-  const handleNodeSelect = (nodeId: number) => {
-    setSelectedNode(nodeId);
+  const handleFileNameChange = (nodeId: number, filename: string) => {
+    setFileName((prevFileNames) => {
+      const updatedFileNames = [...(prevFileNames || [])];
+      updatedFileNames[nodeId] = filename;
+      return updatedFileNames;
+    });
   };
 
-  const handleModeChange = (mode: string) => {
-    // Here you can perform any action you want based on the mode selected
-    console.log(`Mode changed to ${mode} for Node ID: ${selectedNode}`);
+  const handleModeChange = (nodeId: number, mode: string) => {
+    setSelectedMode((prevModes) => {
+      const updatedModes = [...(prevModes || [])];
+      updatedModes[nodeId] = mode;
+      return updatedModes;
+    });
   };
 
-  // const onFetchFiles = (nodeId: number) => {
-  //   const [{ data, loading, error }, refetch] = useAxios(
-  //     "https://reqres.in/api/users?delay=1"
-  //   );
-  // };
+  const handleSetMode = async (nodeId: number) => {
+    const validMode =
+      selectedMode &&
+      (selectedMode[nodeId] === "exit" ||
+        (selectedFileName && selectedFileName[nodeId] !== ""));
+
+    if (!validMode) {
+      setSnackbarContent({
+        open: true,
+        message: "No selected file or mode.",
+        severity: "error",
+      });
+
+      return;
+    }
+
+    const data: ModeForm = {
+      nodeId: nodeId,
+      mode: selectedMode[nodeId],
+      filename: selectedFileName ? selectedFileName[nodeId] : "",
+    };
+
+    await setMode(data, {
+      onSuccess() {
+        setSnackbarContent({
+          open: true,
+          message: `Node ${nodeId} successfully ${selectedMode[nodeId]} ${
+            selectedFileName ? selectedFileName[nodeId] : ""
+          }.`,
+          severity: "success",
+        });
+
+        handleGetAllNodes();
+        handleFileNameChange(nodeId, "");
+      },
+    });
+  };
 
   return (
     <TorrentContext.Provider
       value={{
         nodes,
         snackbarContent,
-        onNodeSelect: handleNodeSelect,
-        onModeChange: handleModeChange,
-        onGetAllNodes: handleGetAllNodes,
+        selectedFileName,
+        bittorrentFiles,
         onSetSnackbarContent: setSnackbarContent,
+        onGetAllNodes: handleGetAllNodes,
+        onSetMode: handleSetMode,
+        onModeChange: handleModeChange,
+        onSetFileName: handleFileNameChange,
       }}
     >
       {children}

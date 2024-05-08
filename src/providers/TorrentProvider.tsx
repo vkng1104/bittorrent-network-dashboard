@@ -1,13 +1,15 @@
 import React, { useState, createContext, useEffect } from "react";
 import { useGetAllNodes } from "../hooks/useNode";
-import { AllNodeResponse, Node } from "../types";
+import { AllNodeResponse, Node, SnackbarContent } from "../types";
 import { nodeInfoTransform } from "../utils/nodeUtils";
 
 interface TorrentContextType {
   nodes: Node[] | null;
+  snackbarContent: SnackbarContent;
   onModeChange: (mode: string) => void;
   onNodeSelect: (nodeId: number) => void;
   onGetAllNodes: () => void;
+  onSetSnackbarContent: (snackbarContent: SnackbarContent) => void;
 }
 
 // Create a context for the SDK
@@ -21,6 +23,11 @@ type Props = {
 
 export const TorrentProvider: React.FC<Props> = ({ children }) => {
   const [selectedNode, setSelectedNode] = useState<number | null>(null);
+  const [snackbarContent, setSnackbarContent] = useState<SnackbarContent>({
+    open: false,
+    message: "",
+    severity: "error",
+  });
   const [nodes, setNodes] = useState<Node[] | null>(null);
 
   const { getAllNodes } = useGetAllNodes();
@@ -66,9 +73,11 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
     <TorrentContext.Provider
       value={{
         nodes,
+        snackbarContent,
         onNodeSelect: handleNodeSelect,
         onModeChange: handleModeChange,
         onGetAllNodes: handleGetAllNodes,
+        onSetSnackbarContent: setSnackbarContent,
       }}
     >
       {children}

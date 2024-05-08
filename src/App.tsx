@@ -1,20 +1,23 @@
 import { useState } from "react";
-import { Button, Snackbar, TextField, Alert, Stack, Divider } from "@mui/material";
+import {
+  Button,
+  Snackbar,
+  TextField,
+  Alert,
+  Stack,
+  Divider,
+} from "@mui/material";
 
 import { useTorrentContext } from "./hooks/useTorrentContext";
 import { useCreateNode } from "./hooks/useNode";
 import AllNodes from "./components/AllNodes";
 
 const App = () => {
-  const { onGetAllNodes } = useTorrentContext();
+  const { onGetAllNodes, snackbarContent, onSetSnackbarContent } =
+    useTorrentContext();
   const { createNode } = useCreateNode();
 
   const [nodeIdInput, setNodeIdInput] = useState("");
-  const [snackbarContent, setSnackbarContent] = useState({
-    open: false,
-    message: "",
-    severity: "error",
-  });
 
   const handleCreateNode = async () => {
     const nodeId = parseInt(nodeIdInput);
@@ -24,7 +27,7 @@ const App = () => {
           { nodeId },
           {
             onSuccess: () => {
-              setSnackbarContent({
+              onSetSnackbarContent({
                 open: true,
                 message: "Node created successfully.",
                 severity: "success",
@@ -36,14 +39,14 @@ const App = () => {
         );
       } catch (error) {
         console.error("Error creating node:", error);
-        setSnackbarContent({
+        onSetSnackbarContent({
           open: true,
           message: "Error creating node. Please try again.",
           severity: "error",
         });
       }
     } else {
-      setSnackbarContent({
+      onSetSnackbarContent({
         open: true,
         message: "Node ID must be a non-negative integer.",
         severity: "error",
@@ -52,7 +55,7 @@ const App = () => {
   };
 
   const handleCloseSnackbar = () => {
-    setSnackbarContent({ ...snackbarContent, open: false });
+    onSetSnackbarContent({ ...snackbarContent, open: false });
   };
 
   return (

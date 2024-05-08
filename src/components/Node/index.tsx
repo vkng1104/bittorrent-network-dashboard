@@ -13,15 +13,19 @@ import {
 import { Node } from "../../types";
 import { useTorrentContext } from "../../hooks/useTorrentContext";
 import SearchFiles from "../SearchFiles";
+import { useUploadFile } from "../../hooks/useNode";
 
 interface NodeProps {
   node: Node;
 }
 
 const NodeInfo: React.FC<NodeProps> = ({ node }) => {
-  const { onModeChange } = useTorrentContext();
+  const { nodes, onModeChange, onGetAllNodes, onSetSnackbarContent } =
+    useTorrentContext();
+  const { uploadFile } = useUploadFile();
+
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [mode, setMode] = useState<string>("");
 
   const handleModeChange = (newMode: string) => {
@@ -39,12 +43,46 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
     const files = event.target.files;
     if (files && files.length > 0) {
       const file = files[0];
-      setSelectedFileName(file.name); // Update the selected file name
+      setSelectedFile(file); // Update the selected file name
       // Here you can handle the file upload
     }
   };
 
+  const handleSaveFile = () => {
+    if (selectedFile) {
+      const formData = new FormData();
+      formData.append("nodeId", node.nodeId.toString());
+      formData.append("file", selectedFile);
+      uploadFile(formData, {
+        onSuccess: () => {
+          onGetAllNodes;
+          setSelectedFile(null);
+          onSetSnackbarContent({
+            open: true,
+            message: `File uploaded to node ${node.nodeId} successfully.`,
+            severity: "success",
+          });
+        },
+        onError: (error) => {
+          console.error("Error uploading file:", error);
+          // Handle error if needed
+        },
+      });
+    }
+  };
+
   const renderModeComponent = () => {
+    if (!nodes) {
+      return null;
+    }
+
+    // Concatenate all files from all nodes except the current node
+    const allFiles = nodes?.reduce(
+      (acc, curr) => [...acc, ...curr.files],
+      [] as string[]
+    );
+    const otherFiles = allFiles.filter((file) => !node.files.includes(file));
+
     switch (mode) {
       case "send":
         return (
@@ -54,8 +92,12 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
                 <Button variant="contained" onClick={handleUpload}>
                   Upload
                 </Button>
-                <Button variant="contained" disabled={selectedFileName === ""}>
-                  Send
+                <Button
+                  variant="contained"
+                  disabled={selectedFile === null}
+                  onClick={handleSaveFile}
+                >
+                  Save
                 </Button>
               </Stack>
               <input
@@ -66,7 +108,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
               />
               {/* Display selected file name */}
               <Typography gutterBottom component="div">
-                {selectedFileName || "No file selected"}
+                {selectedFile?.name || "No file selected"}
               </Typography>
             </Stack>
           </Stack>
@@ -74,8 +116,20 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
       case "download":
         return (
           <Stack gap={2}>
-            <SearchFiles fileOptions={node.files} />
+            <SearchFiles
+              fileOptions={otherFiles}
+              placeholder={`Search files to download`}
+            />
             <Button variant="contained">Download</Button>
+          </Stack>
+        );
+      case "files":
+        return (
+          <Stack gap={2}>
+            <SearchFiles
+              fileOptions={node.files}
+              placeholder={`Search files in node ${node.nodeId}`}
+            />
           </Stack>
         );
       default:
@@ -114,6 +168,11 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
                 justifyContent="space-between"
                 alignItems="start"
               >
+                <FormControlLabel
+                  value="files"
+                  control={<Radio />}
+                  label="Files"
+                />
                 <FormControlLabel
                   value="send"
                   control={<Radio />}

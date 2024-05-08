@@ -31,6 +31,30 @@ export const useCreateNode = () => {
   return { data, loading, createNode: handleCreateNode };
 };
 
+export const useUploadFile = () => {
+  const [{ data, loading }, uploadFile] = useAxiosRequest({
+    api: "http://127.0.0.1:5000/upload_file",
+    method: "POST",
+    options: {
+      manual: true,
+    },
+  });
+
+  const handleUploadFile = async (
+    data: FormData,
+    { onSuccess, onError }: CallAPIOptions = {}
+  ) => {
+    try {
+      const res = await uploadFile({ data });
+      onSuccess?.(res.data);
+    } catch (error: any) {
+      onError?.(error);
+    }
+  };
+
+  return { data, loading, uploadFile: handleUploadFile };
+};
+
 export const useSetMode = () => {
   const [{ data, loading }, setMode] = useAxiosRequest({
     api: `http://127.0.0.1:5000/set_mode`,

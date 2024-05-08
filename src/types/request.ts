@@ -6,7 +6,11 @@ export type CallAPIOptions = {
 };
 
 export type NodeForm = {
-  nodeId: number
+  nodeId: number;
+};
+
+export type UploadFileForm = NodeForm & {
+  file: File;
 };
 
 export type NodeParams = {

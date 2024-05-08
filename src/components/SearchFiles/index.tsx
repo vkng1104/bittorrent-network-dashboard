@@ -4,9 +4,13 @@ import Autocomplete from "@mui/material/Autocomplete";
 
 interface SearchFilesProps {
   fileOptions: string[];
+  placeholder?: string;
 }
 
-const SearchFiles: React.FC<SearchFilesProps> = ({ fileOptions }) => {
+const SearchFiles: React.FC<SearchFilesProps> = ({
+  fileOptions,
+  placeholder,
+}) => {
   return (
     <Stack spacing={2} sx={{ width: 300 }}>
       <Autocomplete
@@ -17,7 +21,7 @@ const SearchFiles: React.FC<SearchFilesProps> = ({ fileOptions }) => {
         renderInput={(params) => (
           <TextField
             {...params}
-            label="Search input"
+            label={placeholder ?? "Search"}
             InputProps={{
               ...params.InputProps,
               type: "search",

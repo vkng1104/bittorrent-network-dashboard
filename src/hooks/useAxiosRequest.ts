@@ -23,7 +23,6 @@ const useAxiosRequest = ({
       params,
       headers: {
         Accept: "application/json",
-        "Content-type": "application/json",
       },
       ...config,
     },

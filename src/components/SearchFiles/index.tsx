@@ -2,7 +2,11 @@ import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import Autocomplete from "@mui/material/Autocomplete";
 
-const SearchFiles = (fileOptions: string[]) => {
+interface SearchFilesProps {
+  fileOptions: string[];
+}
+
+const SearchFiles: React.FC<SearchFilesProps> = ({ fileOptions }) => {
   return (
     <Stack spacing={2} sx={{ width: 300 }}>
       <Autocomplete

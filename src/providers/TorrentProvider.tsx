@@ -28,13 +28,7 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
   useEffect(() => {
     const fetchNodes = async () => {
       try {
-        await getAllNodes({
-          onSuccess(data) {
-            const transformedNodes = nodeInfoTransform(data as AllNodeResponse);
-            console.log(transformedNodes);
-            setNodes(transformedNodes);
-          },
-        });
+        await handleGetAllNodes();
       } catch (error) {
         console.error("Error fetching nodes:", error);
       }
@@ -46,7 +40,9 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
   const handleGetAllNodes = async () => {
     await getAllNodes({
       onSuccess(data) {
-        console.log(data);
+        const transformedNodes = nodeInfoTransform(data as AllNodeResponse);
+        console.log(transformedNodes);
+        setNodes(transformedNodes);
       },
     });
   };

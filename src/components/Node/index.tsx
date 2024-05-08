@@ -1,5 +1,15 @@
 import React, { useRef, useState } from "react";
-import { Box, Button, Card, Divider, Stack, Typography } from "@mui/material";
+import {
+  Button,
+  Card,
+  Divider,
+  FormControl,
+  FormControlLabel,
+  Radio,
+  RadioGroup,
+  Stack,
+  Typography,
+} from "@mui/material";
 import { Node } from "../../types";
 import { useTorrentContext } from "../../hooks/useTorrentContext";
 import SearchFiles from "../SearchFiles";
@@ -12,9 +22,11 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
   const { onModeChange } = useTorrentContext();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedFileName, setSelectedFileName] = useState<string>("");
+  const [mode, setMode] = useState<string>("");
 
-  const handleModeChange = (mode: string) => {
-    onModeChange(mode);
+  const handleModeChange = (newMode: string) => {
+    setMode(newMode);
+    onModeChange(newMode);
   };
 
   const handleUpload = () => {
@@ -32,10 +44,50 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
     }
   };
 
+  const renderModeComponent = () => {
+    switch (mode) {
+      case "send":
+        return (
+          <Stack direction="row" spacing={1}>
+            <Stack gap={2}>
+              <Stack direction="row" gap={2}>
+                <Button variant="contained" onClick={handleUpload}>
+                  Upload
+                </Button>
+                <Button variant="contained" disabled={selectedFileName === ""}>
+                  Send
+                </Button>
+              </Stack>
+              <input
+                type="file"
+                ref={fileInputRef}
+                style={{ display: "none" }}
+                onChange={handleFileSelected}
+              />
+              {/* Display selected file name */}
+              <Typography gutterBottom component="div">
+                {selectedFileName || "No file selected"}
+              </Typography>
+            </Stack>
+          </Stack>
+        );
+      case "download":
+        return (
+          <Stack gap={2}>
+            <SearchFiles fileOptions={node.files} />
+            <Button variant="contained">Download</Button>
+          </Stack>
+        );
+      default:
+        return null;
+    }
+  };
+
   return (
-    <Card variant="outlined" sx={{ maxWidth: 360 }}>
-      <Box sx={{ p: 2 }}>
+    <Card variant="outlined" sx={{ width: 360, height: 300 }}>
+      <Stack sx={{ p: 2 }} gap={2} direction="column" alignItems="start">
         <Stack
+          width="100%"
           direction="row"
           justifyContent="space-between"
           alignItems="start"
@@ -43,53 +95,42 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
           <Typography gutterBottom variant="h5" component="div">
             Node ID: {node.nodeId}
           </Typography>
-          <Stack>
-            <Button variant="contained" onClick={handleUpload}>
-              Upload
-            </Button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              style={{ display: "none" }}
-              onChange={handleFileSelected}
-            />
-            {/* Display selected file name */}
-            <Typography gutterBottom component="div">
-              {selectedFileName || "No file selected"}
-            </Typography>
-          </Stack>
+          <Button variant="contained">Exit</Button>
         </Stack>
-        <SearchFiles fileOptions={node.files} />
-      </Box>
-      <Divider />
-      <Box sx={{ p: 2 }}>
-        <Typography gutterBottom variant="body2">
-          Select option
-        </Typography>
-        <Stack direction="row" spacing={1}>
-          <Button
-            variant="contained"
-            onClick={() => handleModeChange("send")}
-            sx={{ width: "200px" }}
-          >
-            Send
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => handleModeChange("download")}
-            sx={{ width: "200px" }}
-          >
-            Download
-          </Button>
+
+        <Stack>
+          <Typography gutterBottom variant="body2">
+            Select option
+          </Typography>
+          <FormControl component="fieldset">
+            <RadioGroup
+              aria-label="mode"
+              name="mode"
+              value={mode}
+              onChange={(e) => handleModeChange(e.target.value)}
+            >
+              <Stack
+                direction="row"
+                justifyContent="space-between"
+                alignItems="start"
+              >
+                <FormControlLabel
+                  value="send"
+                  control={<Radio />}
+                  label="Send"
+                />
+                <FormControlLabel
+                  value="download"
+                  control={<Radio />}
+                  label="Download"
+                />
+              </Stack>
+            </RadioGroup>
+          </FormControl>
         </Stack>
-        <Button
-          variant="contained"
-          onClick={() => handleModeChange("exit")}
-          sx={{ width: "200px" }}
-        >
-          Exit
-        </Button>
-      </Box>
+        <Divider />
+        {renderModeComponent()}
+      </Stack>
     </Card>
   );
 };

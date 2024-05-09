@@ -1,7 +1,13 @@
 import React, { useState, createContext, useEffect } from "react";
 
 import { useGetAllNodes } from "../hooks/useNode";
-import { AllNodeResponse, LogResponse, ModeForm, Node, SnackbarContent } from "../types";
+import {
+  AllNodeResponse,
+  LogResponse,
+  ModeForm,
+  Node,
+  SnackbarContent,
+} from "../types";
 import { nodeInfoTransform } from "../utils/nodeUtils";
 import { useSetMode } from "../hooks/useSetMode";
 import { useGetLog } from "../hooks/useGetLog";
@@ -14,7 +20,7 @@ interface TorrentContextType {
   selectedFileName: string[] | null;
   onSetSnackbarContent: (snackbarContent: SnackbarContent) => void;
   onGetAllNodes: () => Promise<void>;
-  onSetMode: (nodeId: number) => Promise<void>;
+  onSetMode: (nodeId: number, mode?: string) => Promise<void>;
   onGetLog: (nodeId: number) => Promise<void>;
   onsetSelectedFileName: (nodeId: number, filename: string) => void;
   onModeChange: (nodeId: number, mode: string) => void;
@@ -86,11 +92,12 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
     });
   };
 
-  const handleSetMode = async (nodeId: number) => {
+  const handleSetMode = async (nodeId: number, mode?: string) => {
     const validMode =
-      selectedMode &&
-      (selectedMode[nodeId] === "exit" ||
-        (selectedFileName && selectedFileName[nodeId] !== ""));
+      mode ||
+      (selectedMode &&
+        (selectedMode[nodeId] === "exit" ||
+          (selectedFileName && selectedFileName[nodeId] !== "")));
 
     if (!validMode) {
       setSnackbarContent({
@@ -102,19 +109,22 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
       return;
     }
 
+    const submittedMode = mode ?? (selectedMode || [])[nodeId] ?? "";
+    const submittedFile = (selectedFileName || [])[nodeId] ?? "";
+
     const data: ModeForm = {
       nodeId: nodeId,
-      mode: selectedMode[nodeId],
-      filename: selectedFileName ? selectedFileName[nodeId] : "",
+      mode: submittedMode,
+      filename: submittedFile,
     };
+
+    console.log(data);
 
     await setMode(data, {
       onSuccess() {
         setSnackbarContent({
           open: true,
-          message: `Node ${nodeId} successfully set mode to ${
-            selectedMode[nodeId]
-          } ${selectedFileName ? selectedFileName[nodeId] : ""}.`,
+          message: `Node ${nodeId} successfully set mode to ${submittedMode} ${submittedFile}.`,
           severity: "success",
         });
 

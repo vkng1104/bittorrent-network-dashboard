@@ -54,8 +54,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
   };
 
   const handleSetMode = (newMode?: string) => {
-    if (newMode) handleModeChange(newMode);
-    onSetMode(node.nodeId);
+    onSetMode(node.nodeId, newMode);
   };
 
   const handleUpload = () => {
@@ -238,7 +237,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
       >
         <Box sx={modalStyle}>
           <Typography id="modal-modal-title" variant="h6" component="h2">
-            Text in a modal
+            Log in node {node.nodeId}
           </Typography>
           <Typography
             id="modal-modal-description"

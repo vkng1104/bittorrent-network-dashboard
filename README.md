@@ -2,6 +2,8 @@
 
 The project aims to create a BitTorrent network dashboard that provides insights and management capabilities for nodes and files within the network. It consists of both frontend and backend components to visualize network data and interact with the BitTorrent network.
 
+Check out the demo video [here](https://drive.google.com/file/d/1wAp_sPgZ0bHa10BfyLFDjO7qglZ50Pil/view?usp=sharing).
+
 # To start project
 
 ## Run backend

@@ -6,18 +6,21 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
+  IconButton,
   Modal,
   Radio,
   RadioGroup,
   Stack,
   Typography,
 } from "@mui/material";
-import { Node } from "../../types";
+import RefreshIcon from "@mui/icons-material/Refresh";
+
 import { useTorrentContext } from "../../hooks/useTorrentContext";
+import { useUtilsContext } from "../../hooks/useUtilsContext";
+import { Node } from "../../types";
 import SearchFiles from "../SearchFiles";
 import { useUploadFile } from "../../hooks/useNode";
 import { modalStyle } from "./style";
-import { useUtilsContext } from "../../hooks/useUtilsContext";
 
 interface NodeProps {
   node: Node;
@@ -228,6 +231,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
           {renderModeComponent()}
         </Stack>
       </Card>
+      {/* Modal for logging */}
       <Modal
         open={openModal}
         onClose={handleCloseModal}
@@ -235,9 +239,19 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={modalStyle}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Log in node {node.nodeId}
-          </Typography>
+          <Stack
+            width="100%"
+            direction="row"
+            justifyContent="space-between"
+            alignItems="start"
+          >
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              Log in node {node.nodeId}
+            </Typography>
+            <IconButton aria-label="refresh" onClick={handleGetLog}>
+              <RefreshIcon />
+            </IconButton>
+          </Stack>
           <Typography
             id="modal-modal-description"
             sx={{

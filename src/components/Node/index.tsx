@@ -6,14 +6,18 @@ import {
   Divider,
   FormControl,
   FormControlLabel,
+  IconButton,
   Modal,
   Radio,
   RadioGroup,
   Stack,
   Typography,
 } from "@mui/material";
-import { Node } from "../../types";
+import RefreshIcon from "@mui/icons-material/Refresh";
+
 import { useTorrentContext } from "../../hooks/useTorrentContext";
+import { useUtilsContext } from "../../hooks/useUtilsContext";
+import { Node } from "../../types";
 import SearchFiles from "../SearchFiles";
 import { useUploadFile } from "../../hooks/useNode";
 import { modalStyle } from "./style";
@@ -23,29 +27,24 @@ interface NodeProps {
 }
 
 const NodeInfo: React.FC<NodeProps> = ({ node }) => {
-  const {
-    bittorrentFiles,
-    selectedLog,
-    onModeChange,
-    onGetAllNodes,
-    onSetSnackbarContent,
-    onSetMode,
-    onGetLog,
-  } = useTorrentContext();
+  const { bittorrentFiles, selectedLog, onGetAllNodes, onSetMode, onGetLog } =
+    useTorrentContext();
+
+  const { onSetSnackbarContent, onSelectedModeChange, selectedMode } =
+    useUtilsContext();
+
   const { uploadFile } = useUploadFile();
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [selectedUploadFile, setSelectedUploadFile] = useState<File | null>(
     null
   );
-  const [mode, setMode] = useState<string>("");
   const [openModal, setOpenModal] = React.useState(false);
   const handleOpenModal = () => setOpenModal(true);
   const handleCloseModal = () => setOpenModal(false);
 
   const handleModeChange = (newMode: string) => {
-    setMode(newMode);
-    onModeChange(node.nodeId, newMode);
+    onSelectedModeChange(node.nodeId, newMode);
   };
 
   const handleGetLog = async () => {
@@ -88,8 +87,11 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
           setSelectedUploadFile(null);
         },
         onError: (error) => {
-          console.error("Error uploading file:", error);
-          // Handle error if needed
+          onSetSnackbarContent({
+            open: true,
+            message: error.message,
+            severity: "error",
+          });
         },
       });
     }
@@ -103,6 +105,8 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
     const otherFiles = bittorrentFiles.filter(
       (file) => !node.files.includes(file)
     );
+
+    const mode = selectedMode[node.nodeId] ?? "";
 
     switch (mode) {
       case "upload":
@@ -139,7 +143,6 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
           <Stack gap={2}>
             <SearchFiles
               nodeId={node.nodeId}
-              modeReset={mode}
               fileOptions={otherFiles}
               placeholder={`Search files to download`}
             />
@@ -152,7 +155,6 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
         return (
           <Stack gap={2}>
             <SearchFiles
-              modeReset={mode}
               nodeId={node.nodeId}
               fileOptions={node.files}
               placeholder={`Search files in node ${node.nodeId}`}
@@ -198,7 +200,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
               <RadioGroup
                 aria-label="mode"
                 name="mode"
-                value={mode}
+                value={selectedMode[node.nodeId] ?? ""}
                 onChange={(e) => handleModeChange(e.target.value)}
               >
                 <Stack
@@ -229,6 +231,7 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
           {renderModeComponent()}
         </Stack>
       </Card>
+      {/* Modal for logging */}
       <Modal
         open={openModal}
         onClose={handleCloseModal}
@@ -236,9 +239,19 @@ const NodeInfo: React.FC<NodeProps> = ({ node }) => {
         aria-describedby="modal-modal-description"
       >
         <Box sx={modalStyle}>
-          <Typography id="modal-modal-title" variant="h6" component="h2">
-            Log in node {node.nodeId}
-          </Typography>
+          <Stack
+            width="100%"
+            direction="row"
+            justifyContent="space-between"
+            alignItems="start"
+          >
+            <Typography id="modal-modal-title" variant="h6" component="h2">
+              Log in node {node.nodeId}
+            </Typography>
+            <IconButton aria-label="refresh" onClick={handleGetLog}>
+              <RefreshIcon />
+            </IconButton>
+          </Stack>
           <Typography
             id="modal-modal-description"
             sx={{

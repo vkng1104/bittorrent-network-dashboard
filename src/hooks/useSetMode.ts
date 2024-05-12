@@ -16,8 +16,8 @@ export const useSetMode = () => {
     { onSuccess, onError }: CallAPIOptions = {}
   ) => {
     try {
-      await setMode({ data });
-      onSuccess?.();
+      const res = await setMode({ data });
+      onSuccess?.(res.data);
     } catch (error: any) {
       onError?.(error);
     }

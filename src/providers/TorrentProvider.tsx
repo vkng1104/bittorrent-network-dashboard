@@ -1,29 +1,19 @@
 import React, { useState, createContext, useEffect } from "react";
 
 import { useGetAllNodes } from "../hooks/useNode";
-import {
-  AllNodeResponse,
-  LogResponse,
-  ModeForm,
-  Node,
-  SnackbarContent,
-} from "../types";
+import { AllNodeResponse, LogResponse, ModeForm, Node } from "../types";
 import { nodeInfoTransform } from "../utils/nodeUtils";
 import { useSetMode } from "../hooks/useSetMode";
 import { useGetLog } from "../hooks/useGetLog";
+import { useUtilsContext } from "../hooks/useUtilsContext";
 
 interface TorrentContextType {
-  nodes: Node[] | null;
-  bittorrentFiles: string[] | null;
+  nodes: Node[];
+  bittorrentFiles: string[];
   selectedLog: string;
-  snackbarContent: SnackbarContent;
-  selectedFileName: string[] | null;
-  onSetSnackbarContent: (snackbarContent: SnackbarContent) => void;
   onGetAllNodes: () => Promise<void>;
   onSetMode: (nodeId: number, mode?: string) => Promise<void>;
   onGetLog: (nodeId: number) => Promise<void>;
-  onsetSelectedFileName: (nodeId: number, filename: string) => void;
-  onModeChange: (nodeId: number, mode: string) => void;
 }
 
 // Create a context for the SDK
@@ -36,18 +26,17 @@ type Props = {
 };
 
 export const TorrentProvider: React.FC<Props> = ({ children }) => {
-  const [snackbarContent, setSnackbarContent] = useState<SnackbarContent>({
-    open: false,
-    message: "",
-    severity: "error",
-  });
-  const [nodes, setNodes] = useState<Node[] | null>(null);
-  const [bittorrentFiles, setBittorrentFiles] = useState<string[] | null>(null);
-  const [selectedMode, setSelectedMode] = useState<string[] | null>(null);
-  const [selectedFileName, setSelectedFileName] = useState<string[] | null>(
-    null
-  );
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [bittorrentFiles, setBittorrentFiles] = useState<string[]>([]);
   const [selectedLog, setSelectedLog] = useState<string>("");
+
+  const {
+    selectedFileName,
+    selectedMode,
+    onSetSnackbarContent,
+    onSelectedFileNameChange,
+    onSelectedModeChange,
+  } = useUtilsContext();
 
   const { getAllNodes } = useGetAllNodes();
   const { setMode } = useSetMode();
@@ -67,28 +56,12 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
 
   const handleGetAllNodes = async () => {
     await getAllNodes({
-      onSuccess(data: AllNodeResponse) {
+      onSuccess: (data: AllNodeResponse) => {
         const transformedNodes = nodeInfoTransform(data);
         console.log(transformedNodes);
         setNodes(transformedNodes);
         setBittorrentFiles(data.bittorrentFiles);
       },
-    });
-  };
-
-  const handleFileNameChange = (nodeId: number, filename: string) => {
-    setSelectedFileName((prevFileNames) => {
-      const updatedFileNames = [...(prevFileNames || [])];
-      updatedFileNames[nodeId] = filename;
-      return updatedFileNames;
-    });
-  };
-
-  const handleModeChange = (nodeId: number, mode: string) => {
-    setSelectedMode((prevModes) => {
-      const updatedModes = [...(prevModes || [])];
-      updatedModes[nodeId] = mode;
-      return updatedModes;
     });
   };
 
@@ -100,7 +73,7 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
           (selectedFileName && selectedFileName[nodeId] !== "")));
 
     if (!validMode) {
-      setSnackbarContent({
+      onSetSnackbarContent({
         open: true,
         message: "No selected file or mode.",
         severity: "error",
@@ -121,15 +94,23 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
     console.log(data);
 
     await setMode(data, {
-      onSuccess() {
-        setSnackbarContent({
+      onSuccess: () => {
+        onSetSnackbarContent({
           open: true,
           message: `Node ${nodeId} successfully set mode to ${submittedMode} ${submittedFile}.`,
           severity: "success",
         });
 
         handleGetAllNodes();
-        handleFileNameChange(nodeId, "");
+        onSelectedFileNameChange(nodeId, "");
+        onSelectedModeChange(nodeId, "");
+      },
+      onError: (error) => {
+        onSetSnackbarContent({
+          open: true,
+          message: error.message,
+          severity: "error",
+        });
       },
     });
   };
@@ -140,13 +121,20 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
       {
         onSuccess(data: LogResponse) {
           console.log(data);
-          setSnackbarContent({
+          onSetSnackbarContent({
             open: true,
             message: `Node ${nodeId} successfully retrieve log`,
             severity: "success",
           });
 
           setSelectedLog(data.logData);
+        },
+        onError: (error) => {
+          onSetSnackbarContent({
+            open: true,
+            message: error.message,
+            severity: "error",
+          });
         },
       }
     );
@@ -157,14 +145,9 @@ export const TorrentProvider: React.FC<Props> = ({ children }) => {
       value={{
         nodes,
         selectedLog,
-        snackbarContent,
-        selectedFileName,
         bittorrentFiles,
-        onSetSnackbarContent: setSnackbarContent,
         onGetAllNodes: handleGetAllNodes,
         onSetMode: handleSetMode,
-        onModeChange: handleModeChange,
-        onsetSelectedFileName: handleFileNameChange,
         onGetLog: handleGetLog,
       }}
     >

@@ -12,10 +12,13 @@ import { useTorrentContext } from "./hooks/useTorrentContext";
 import { useCreateNode } from "./hooks/useNode";
 import AllNodes from "./components/AllNodes";
 import { useStartTracker } from "./hooks/useStartTracker";
+import { useUtilsContext } from "./hooks/useUtilsContext";
 
 const App = () => {
-  const { onGetAllNodes, snackbarContent, onSetSnackbarContent } =
-    useTorrentContext();
+  const { onGetAllNodes } = useTorrentContext();
+
+  const { snackbarContent, onSetSnackbarContent } = useUtilsContext();
+
   const { createNode } = useCreateNode();
   const { startTracker } = useStartTracker();
 
@@ -27,14 +30,21 @@ const App = () => {
       await createNode(
         { nodeId },
         {
-          onSuccess: () => {
+          onSuccess: (data) => {
             onSetSnackbarContent({
               open: true,
-              message: "Node created successfully.",
+              message: data.message,
               severity: "success",
             });
             setNodeIdInput(""); // Clear input field
             onGetAllNodes(); // Refresh nodes data after creation
+          },
+          onError: (error) => {
+            onSetSnackbarContent({
+              open: true,
+              message: error.message,
+              severity: "error",
+            });
           },
         }
       );
@@ -50,11 +60,18 @@ const App = () => {
   const handleStartTracker = async () => {
     await startTracker({
       onSuccess(data) {
-          onSetSnackbarContent({
-            open: true,
-            message: data.message,
-            severity: "success",
-          });
+        onSetSnackbarContent({
+          open: true,
+          message: data.message,
+          severity: "success",
+        });
+      },
+      onError: (error) => {
+        onSetSnackbarContent({
+          open: true,
+          message: error.message,
+          severity: "error",
+        });
       },
     });
   };

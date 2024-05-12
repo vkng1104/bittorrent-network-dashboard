@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export type CallAPIOptions = {
   onSuccess?: (data?: any) => void;
-  onError?: (error?: unknown) => void;
+  onError?: (error?: any) => void;
   onFinally?: () => void;
 };
 

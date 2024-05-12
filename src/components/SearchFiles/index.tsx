@@ -1,27 +1,22 @@
+import React from "react";
 import TextField from "@mui/material/TextField";
 import Stack from "@mui/material/Stack";
 import Autocomplete from "@mui/material/Autocomplete";
-import React, { useEffect } from "react";
-import { useTorrentContext } from "../../hooks/useTorrentContext";
+
+import { useUtilsContext } from "../../hooks/useUtilsContext";
 
 interface SearchFilesProps {
   fileOptions: string[];
   placeholder?: string;
-  modeReset: string; // a prop to trigger reset
   nodeId: number;
 }
 
 const SearchFiles: React.FC<SearchFilesProps> = ({
   fileOptions,
   placeholder,
-  modeReset,
   nodeId,
 }) => {
-  const { selectedFileName, onsetSelectedFileName } = useTorrentContext();
-
-  useEffect(() => {
-    onsetSelectedFileName(nodeId, "");
-  }, [modeReset]);
+  const { selectedFileName, onSelectedFileNameChange } = useUtilsContext();
 
   return (
     <Stack spacing={2} sx={{ width: 300 }}>
@@ -30,9 +25,9 @@ const SearchFiles: React.FC<SearchFilesProps> = ({
         id="searchFiles"
         disableClearable
         options={fileOptions}
-        value={selectedFileName ? selectedFileName[nodeId] : ""}
+        value={selectedFileName[nodeId] ?? ""}
         onInputChange={(event, newValue) =>
-          onsetSelectedFileName(nodeId, newValue)
+          onSelectedFileNameChange(nodeId, newValue)
         }
         renderInput={(params) => (
           <TextField

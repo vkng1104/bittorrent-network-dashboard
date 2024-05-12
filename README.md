@@ -10,14 +10,7 @@ Check out the demo video [here](https://drive.google.com/file/d/1wAp_sPgZ0bHa10B
 
 For backend, visit https://github.com/PDucMinh/Ass1-ComNet
 
-Currently, we only support MacOS and Linux for backend
-
-To install `gnome-terminal`, run
-
-```bash
-sudo apt update
-sudo apt install gnome-terminal
-```
+Currently, we only support Windows
 
 To start server, run
 
